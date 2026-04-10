@@ -18,7 +18,8 @@
     --green: #22c55e;
     --yellow: #f59e0b;
   }
-  html, body { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; }
 
   /* SIDEBAR */
   .sidebar {
@@ -77,8 +78,22 @@
   .section-title { font-size: 15px; font-weight: 600; }
   .section-meta { font-size: 12px; color: var(--muted); }
 
+  /* DASHBOARD TWO-PANEL */
+  .dashboard-panels { display: grid; grid-template-columns: 1fr 340px; gap: 20px; align-items: start; }
+  .panel-left { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .panel-right { display: flex; flex-direction: column; gap: 16px; }
+  .right-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .right-card-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .right-card-body { padding: 12px; }
+  .mini-event { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; cursor: pointer; transition: background 0.1s; }
+  .mini-event:hover { background: var(--surface2); }
+  .mini-event-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .mini-event-body { flex: 1; min-width: 0; }
+  .mini-event-title { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mini-event-meta { font-size: 11px; color: var(--muted); }
+
   /* CAMERA GRID */
-  .camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+  .camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
   .camera-tile {
     background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
     overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s;
@@ -241,7 +256,7 @@
   select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; }
 
   /* APP WRAPPER */
-  .app-wrapper { width: 100%; height: 100%; display: flex; overflow: hidden; }
+  .app-wrapper { width: 100vw; height: 100vh; display: flex; overflow: hidden; }
   .app-wrapper.hidden { display: none; }
 
   /* LOGIN PAGE */
@@ -484,11 +499,13 @@
         </div>
       </div>
 
-      <div class="section-header">
-        <span class="section-title">Live Cameras</span>
-        <span class="section-meta">4 devices • all online</span>
-      </div>
-      <div class="camera-grid">
+      <div class="dashboard-panels">
+        <div class="panel-left">
+          <div class="section-header" style="margin-bottom:0">
+            <span class="section-title">Live Cameras</span>
+            <span class="section-meta">4 devices • all online</span>
+          </div>
+          <div class="camera-grid">
         <!-- Camera 1 -->
         <div class="camera-tile" onclick="openModal('Front Door', 'Active — Person detected 2 min ago')">
           <div class="camera-feed">
@@ -578,7 +595,87 @@
             </div>
           </div>
         </div>
-      </div>
+        </div><!-- end panel-left -->
+
+        <!-- RIGHT PANEL -->
+        <div class="panel-right">
+          <!-- Recent Activity -->
+          <div class="right-card">
+            <div class="right-card-header">
+              Recent Activity
+              <span style="font-size:11px;color:var(--muted);font-weight:400">Today</span>
+            </div>
+            <div class="right-card-body">
+              <div class="mini-event">
+                <div class="mini-event-icon" style="background:rgba(99,102,241,0.15)"><svg width="16" height="16" fill="none" stroke="#818cf8" viewBox="0 0 24 24"><path stroke-width="2" d="M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 8a9 9 0 11-18 0"/></svg></div>
+                <div class="mini-event-body"><div class="mini-event-title">Person detected</div><div class="mini-event-meta">Front Door · 2 min ago</div></div>
+                <span class="badge badge-person">94%</span>
+              </div>
+              <div class="mini-event">
+                <div class="mini-event-icon" style="background:rgba(204,18,48,0.15)"><svg width="16" height="16" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+                <div class="mini-event-body"><div class="mini-event-title">False alarm</div><div class="mini-event-meta">Backyard · 4 hrs ago</div></div>
+                <span class="badge badge-false">!</span>
+              </div>
+              <div class="mini-event">
+                <div class="mini-event-icon" style="background:rgba(245,158,11,0.15)"><svg width="16" height="16" fill="none" stroke="#f59e0b" viewBox="0 0 24 24"><path stroke-width="2" d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
+                <div class="mini-event-body"><div class="mini-event-title">Vehicle detected</div><div class="mini-event-meta">Garage · 1 hr ago</div></div>
+                <span class="badge badge-vehicle">88%</span>
+              </div>
+              <div class="mini-event">
+                <div class="mini-event-icon" style="background:rgba(34,197,94,0.15)"><svg width="16" height="16" fill="none" stroke="#22c55e" viewBox="0 0 24 24"><path stroke-width="2" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/></svg></div>
+                <div class="mini-event-body"><div class="mini-event-title">Package delivered</div><div class="mini-event-meta">Front Door · 2 hrs ago</div></div>
+                <span class="badge badge-package">99%</span>
+              </div>
+              <div class="mini-event">
+                <div class="mini-event-icon" style="background:rgba(204,18,48,0.15)"><svg width="16" height="16" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+                <div class="mini-event-body"><div class="mini-event-title">False alarm</div><div class="mini-event-meta">Front Door · 6 hrs ago</div></div>
+                <span class="badge badge-false">!</span>
+              </div>
+              <div style="text-align:center;padding:10px 0 2px">
+                <span style="font-size:12px;color:var(--red);cursor:pointer" onclick="showPage('events', document.querySelector('[onclick*=events]'))">View all events →</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Status -->
+          <div class="right-card">
+            <div class="right-card-header">AI Monitor Status</div>
+            <div class="right-card-body" style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+                <span style="color:var(--muted)">Person Detection</span>
+                <span style="color:var(--green);font-weight:600;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span>Active</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+                <span style="color:var(--muted)">Vehicle Detection</span>
+                <span style="color:var(--green);font-weight:600;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span>Active</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+                <span style="color:var(--muted)">Package Detection</span>
+                <span style="color:var(--green);font-weight:600;display:flex;align-items:center;gap:5px"><span style="width:6px;height:6px;background:var(--green);border-radius:50%;display:inline-block"></span>Active</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px">
+                <span style="color:var(--muted)">Personalized AI</span>
+                <span style="color:var(--muted);font-size:11px">Premium only</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:10px;font-size:12px;color:var(--muted);margin-top:4px">
+                <span style="color:var(--yellow)">⚠</span> 8 false alarms this week — update firmware to v4.3.2 to resolve
+              </div>
+            </div>
+          </div>
+
+          <!-- Storage -->
+          <div class="right-card">
+            <div class="right-card-header">Cloud Storage</div>
+            <div class="right-card-body">
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px">18.4 GB of 30 GB used</div>
+              <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+                <div style="background:var(--red);width:61%;height:100%;border-radius:4px"></div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:6px">30-day retention · Standard plan</div>
+            </div>
+          </div>
+        </div><!-- end panel-right -->
+      </div><!-- end dashboard-panels -->
     </div>
 
     <!-- EVENTS PAGE -->

@@ -38,7 +38,7 @@
   .sidebar-footer { margin-top: auto; padding: 16px 24px; font-size: 11px; color: #444; }
 
   /* MAIN */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
 
   /* TOPBAR */
   .topbar {
@@ -241,7 +241,7 @@
   select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; }
 
   /* APP WRAPPER */
-  .app-wrapper { position: fixed; inset: 0; display: flex; overflow: hidden; }
+  .app-wrapper { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; display: flex; overflow: hidden; }
   .app-wrapper.hidden { display: none; }
 
   /* LOGIN PAGE */

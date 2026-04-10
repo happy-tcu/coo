@@ -679,16 +679,18 @@
 
     <!-- EVENTS PAGE -->
     <div class="page" id="page-events">
-      <div class="section-header" style="margin-bottom:20px">
-        <span class="section-title">Event History</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">All</button>
-          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Person</button>
-          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Vehicle</button>
-          <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)">False Alarm</button>
-        </div>
-      </div>
-      <div class="events-list">
+      <div class="dashboard-panels">
+        <div class="panel-left">
+          <div class="section-header" style="margin-bottom:0">
+            <span class="section-title">Event History</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn-ghost" style="font-size:12px;padding:6px 12px">All</button>
+              <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Person</button>
+              <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Vehicle</button>
+              <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)">False Alarm</button>
+            </div>
+          </div>
+          <div class="events-list">
         <div class="event-item">
           <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 8a9 9 0 11-18 0"/></svg></div>
           <div class="event-body">
@@ -753,11 +755,95 @@
           </div>
           <button class="btn-ghost" style="font-size:11px;padding:5px 10px;white-space:nowrap">Mark Reviewed</button>
         </div>
-      </div>
+        </div><!-- end events-list -->
+        </div><!-- end panel-left -->
+
+        <div class="panel-right">
+          <div class="right-card">
+            <div class="right-card-header">Today's Summary</div>
+            <div class="right-card-body" style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;color:var(--muted)">Total Events</span>
+                <span style="font-size:20px;font-weight:700">23</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:#818cf8;border-radius:50%;display:inline-block"></span>Person</span>
+                <span style="font-weight:600">9</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:var(--yellow);border-radius:50%;display:inline-block"></span>Vehicle</span>
+                <span style="font-weight:600">4</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:var(--green);border-radius:50%;display:inline-block"></span>Package</span>
+                <span style="font-weight:600">2</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;background:var(--red);border-radius:50%;display:inline-block"></span>False Alarm</span>
+                <span style="font-weight:600;color:var(--red)">8</span>
+              </div>
+            </div>
+          </div>
+          <div class="right-card">
+            <div class="right-card-header">False Alarm Rate</div>
+            <div class="right-card-body">
+              <div style="font-size:28px;font-weight:800;color:var(--red)">34.7%</div>
+              <div style="font-size:12px;color:var(--muted);margin:6px 0 10px">↑ High — caused by v4.2.1 firmware</div>
+              <div style="background:var(--border);border-radius:4px;height:6px;overflow:hidden">
+                <div style="background:var(--red);width:35%;height:100%;border-radius:4px"></div>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:8px">Target: &lt;5% after v4.3.2 update</div>
+              <button class="btn-red" style="width:100%;margin-top:12px;padding:8px;font-size:12px;border-radius:7px">Update Firmware Now</button>
+            </div>
+          </div>
+          <div class="right-card">
+            <div class="right-card-header">7-Day Trend</div>
+            <div class="right-card-body" style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Mon</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:40%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">10</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Tue</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:60%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">15</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Wed</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:32%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">8</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Thu</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:72%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">18</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Fri</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:48%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">12</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Sat</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:#818cf8;width:20%;height:100%"></div></div>
+                <span style="color:var(--muted);width:20px;text-align:right">5</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+                <span style="color:var(--muted);width:28px">Sun</span>
+                <div style="flex:1;background:var(--border);border-radius:3px;height:6px;overflow:hidden"><div style="background:var(--red);width:92%;height:100%"></div></div>
+                <span style="color:var(--red);width:20px;text-align:right">23</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- end panel-right -->
+      </div><!-- end dashboard-panels -->
     </div>
 
     <!-- SETTINGS PAGE -->
     <div class="page" id="page-settings">
+      <div class="dashboard-panels">
+      <div class="panel-left">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <span class="section-title">Device Settings</span>
         <select>
@@ -860,6 +946,57 @@
           <div class="toggle on" onclick="this.classList.toggle('on')"></div>
         </div>
       </div>
+      </div><!-- end panel-left -->
+
+      <div class="panel-right">
+        <div class="right-card">
+          <div class="right-card-header">Device Status</div>
+          <div class="right-card-body" style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface2);border-radius:8px">
+              <div style="width:40px;height:40px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">PRO2</div>
+              <div>
+                <div style="font-size:13px;font-weight:600">Front Door</div>
+                <div style="font-size:11px;color:var(--green)">● Online · BLP2-08821</div>
+              </div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Firmware</span><span style="color:var(--yellow);font-weight:600">v4.2.1 ⚠</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Signal Strength</span><span style="color:var(--green);font-weight:600">Strong</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Resolution</span><span style="font-weight:600">4K Ultra HD</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Night Vision</span><span style="color:var(--green);font-weight:600">Active</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--muted)">Uptime</span><span style="font-weight:600">14 days</span></div>
+          </div>
+        </div>
+        <div class="right-card">
+          <div class="right-card-header">Notifications</div>
+          <div class="right-card-body" style="display:flex;flex-direction:column;gap:0">
+            <div class="setting-row">
+              <div class="setting-label">Push Alerts</div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">SMS Alerts</div>
+              <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-label">Email Digest</div>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+            <div class="setting-row" style="border:none">
+              <div class="setting-label">Quiet Hours</div>
+              <div class="toggle" onclick="this.classList.toggle('on')"></div>
+            </div>
+          </div>
+        </div>
+        <div class="right-card">
+          <div class="right-card-header">Quick Actions</div>
+          <div class="right-card-body" style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn-red" style="width:100%;padding:9px;font-size:13px;border-radius:7px">Update to v4.3.2</button>
+            <button class="btn-ghost" style="width:100%;padding:9px;font-size:13px">Restart Device</button>
+            <button class="btn-ghost" style="width:100%;padding:9px;font-size:13px">Factory Reset</button>
+          </div>
+        </div>
+      </div><!-- end panel-right -->
+      </div><!-- end dashboard-panels -->
     </div>
 
     <!-- SUBSCRIPTION PAGE -->

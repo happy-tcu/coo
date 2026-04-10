@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BrightLock Security</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --red: #CC1230;
+    --red-dark: #a00e26;
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2a2a2a;
+    --text: #ffffff;
+    --muted: #888888;
+    --green: #22c55e;
+    --yellow: #f59e0b;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; padding: 24px 0; flex-shrink: 0;
+  }
+  .logo { padding: 0 24px 28px; font-size: 20px; font-weight: 800; color: var(--red); letter-spacing: -0.5px; }
+  .logo span { color: var(--text); }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px; padding: 12px 24px;
+    cursor: pointer; color: var(--muted); font-size: 14px; font-weight: 500;
+    transition: all 0.15s; border-left: 3px solid transparent;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--text); border-left-color: var(--red); background: rgba(204,18,48,0.08); }
+  .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .sidebar-footer { margin-top: auto; padding: 16px 24px; font-size: 11px; color: #444; }
+
+  /* MAIN */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* TOPBAR */
+  .topbar {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .topbar-title { font-size: 16px; font-weight: 600; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .notif-btn { position: relative; background: none; border: none; cursor: pointer; color: var(--muted); }
+  .notif-dot { position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; }
+  .avatar { width: 34px; height: 34px; background: var(--red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; cursor: pointer; }
+
+  /* CONTENT */
+  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+  /* RECOVERY BANNER */
+  .recovery-banner {
+    background: linear-gradient(135deg, #1a0508, #2a0a10);
+    border: 1px solid var(--red); border-radius: 10px;
+    padding: 14px 18px; margin-bottom: 24px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .recovery-banner-left { display: flex; align-items: center; gap: 12px; }
+  .recovery-icon { width: 36px; height: 36px; background: var(--red); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .recovery-text { font-size: 13px; }
+  .recovery-text strong { color: var(--red); }
+  .recovery-text p { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .recovery-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-red { background: var(--red); color: white; border: none; padding: 8px 16px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.15s; }
+  .btn-red:hover { background: var(--red-dark); }
+  .btn-ghost { background: none; border: 1px solid var(--border); color: var(--muted); padding: 8px 14px; border-radius: 7px; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .btn-ghost:hover { border-color: #555; color: var(--text); }
+
+  /* SECTION HEADER */
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .section-title { font-size: 15px; font-weight: 600; }
+  .section-meta { font-size: 12px; color: var(--muted); }
+
+  /* CAMERA GRID */
+  .camera-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+  .camera-tile {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; cursor: pointer; transition: border-color 0.2s, transform 0.15s;
+  }
+  .camera-tile:hover { border-color: var(--red); transform: translateY(-1px); }
+  .camera-feed {
+    height: 160px; background: #111; position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .feed-bg { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+  .feed-placeholder { width: 100%; height: 100%; background: linear-gradient(135deg, #111 0%, #1a1a1a 50%, #0d0d0d 100%); display: flex; align-items: center; justify-content: center; }
+  .feed-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 10px 12px; }
+  .live-badge { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.6); border-radius: 5px; padding: 3px 8px; font-size: 11px; font-weight: 700; width: fit-content; }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .motion-box {
+    position: absolute; border: 2px solid var(--red); border-radius: 4px;
+    width: 60px; height: 80px; top: 40px; left: 70px;
+    animation: moveBox 4s infinite ease-in-out;
+  }
+  @keyframes moveBox { 0%{transform:translate(0,0)} 25%{transform:translate(20px,-10px)} 50%{transform:translate(-10px,15px)} 75%{transform:translate(15px,5px)} 100%{transform:translate(0,0)} }
+  .motion-box-label { position: absolute; top: -20px; left: 0; background: var(--red); color: white; font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+  .camera-info { padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; }
+  .camera-name { font-size: 14px; font-weight: 600; }
+  .camera-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .camera-actions { display: flex; gap: 8px; }
+  .icon-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); width: 30px; height: 30px; border-radius: 7px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s; }
+  .icon-btn:hover { background: var(--red); color: white; border-color: var(--red); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  /* STATS ROW */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .stat-value { font-size: 24px; font-weight: 700; }
+  .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .stat-red { color: var(--red); }
+  .stat-green { color: var(--green); }
+  .stat-yellow { color: var(--yellow); }
+
+  /* EVENTS */
+  .events-list { display: flex; flex-direction: column; gap: 10px; }
+  .event-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 16px; display: flex; align-items: center; gap: 14px;
+    transition: border-color 0.15s;
+  }
+  .event-item:hover { border-color: #3a3a3a; }
+  .event-thumb { width: 56px; height: 40px; background: #111; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .event-thumb svg { width: 20px; height: 20px; color: #333; }
+  .event-body { flex: 1; }
+  .event-title { font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .event-meta { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+  .badge-person { background: rgba(99,102,241,0.2); color: #818cf8; }
+  .badge-vehicle { background: rgba(245,158,11,0.2); color: #f59e0b; }
+  .badge-package { background: rgba(34,197,94,0.2); color: #22c55e; }
+  .badge-false { background: rgba(204,18,48,0.2); color: var(--red); }
+  .badge-animal { background: rgba(168,85,247,0.2); color: #a855f7; }
+  .confidence { font-size: 11px; color: var(--muted); margin-left: auto; white-space: nowrap; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SETTINGS */
+  .settings-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+  .settings-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-label { font-size: 13px; }
+  .setting-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .toggle { width: 40px; height: 22px; background: var(--border); border-radius: 11px; position: relative; cursor: pointer; transition: background 0.2s; }
+  .toggle.on { background: var(--red); }
+  .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: transform 0.2s; }
+  .toggle.on::after { transform: translateX(18px); }
+  .slider-wrap { display: flex; align-items: center; gap: 12px; }
+  .slider { -webkit-appearance: none; width: 160px; height: 4px; border-radius: 2px; background: var(--border); outline: none; cursor: pointer; }
+  .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%; background: var(--red); cursor: pointer; }
+  .slider-val { font-size: 12px; color: var(--red); font-weight: 600; min-width: 40px; text-align: right; }
+  .firmware-row { display: flex; align-items: center; justify-content: space-between; }
+  .firmware-badge { background: rgba(245,158,11,0.15); color: var(--yellow); font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 5px; }
+
+  /* ZONE GRID */
+  .zone-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 200px; }
+  .zone { height: 44px; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; transition: all 0.15s; }
+  .zone.active { background: rgba(204,18,48,0.3); border-color: var(--red); }
+  .zone:hover { border-color: var(--red); }
+
+  /* SUBSCRIPTION */
+  .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .plan-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; position: relative; transition: border-color 0.2s; }
+  .plan-card.current { border-color: var(--red); }
+  .plan-card.current::before { content: 'CURRENT PLAN'; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--red); color: white; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 4px; white-space: nowrap; }
+  .plan-name { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .plan-price { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+  .plan-price span { font-size: 14px; font-weight: 400; color: var(--muted); }
+  .plan-period { font-size: 12px; color: var(--muted); margin-bottom: 20px; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+  .plan-features li { font-size: 13px; display: flex; align-items: center; gap: 8px; color: #ccc; }
+  .plan-features li::before { content: ''; width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; }
+  .plan-features li.yes::before { background: rgba(34,197,94,0.2); border: 1.5px solid var(--green); background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3 8l3.5 3.5L13 5' stroke='%2322c55e' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); }
+  .plan-features li.no { color: #555; }
+  .plan-features li.no::before { background: rgba(255,255,255,0.05); border: 1.5px solid #333; }
+  .plan-btn { width: 100%; padding: 10px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .plan-btn-outline { background: none; border: 1px solid var(--border); color: var(--muted); }
+  .plan-btn-red { background: var(--red); color: white; }
+  .plan-btn-red:hover { background: var(--red-dark); }
+
+  /* RECOVERY PAGE */
+  .recovery-page { max-width: 600px; margin: 0 auto; text-align: center; padding: 20px 0; }
+  .recovery-page h2 { font-size: 28px; font-weight: 800; margin-bottom: 10px; }
+  .recovery-page p { color: var(--muted); font-size: 14px; margin-bottom: 32px; line-height: 1.6; }
+  .recovery-benefits { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 32px; }
+  .benefit-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; text-align: center; }
+  .benefit-icon { width: 40px; height: 40px; background: rgba(204,18,48,0.15); border-radius: 10px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; }
+  .benefit-title { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+  .benefit-desc { font-size: 11px; color: var(--muted); }
+  .recovery-form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: left; }
+  .form-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; display: block; }
+  .form-input { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.15s; margin-bottom: 14px; }
+  .form-input:focus { border-color: var(--red); }
+  .progress-steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 28px; }
+  .step { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .step.active { color: var(--text); }
+  .step.done { color: var(--green); }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .step.active .step-dot { border-color: var(--red); background: var(--red); color: white; }
+  .step.done .step-dot { border-color: var(--green); background: rgba(34,197,94,0.15); color: var(--green); }
+  .step-line { width: 40px; height: 2px; background: var(--border); margin: 0 4px; }
+  .step-line.done { background: var(--green); }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; width: 680px; max-width: 95vw; overflow: hidden; }
+  .modal-feed { height: 340px; background: #0a0a0a; position: relative; display: flex; align-items: center; justify-content: center; }
+  .modal-feed-placeholder { color: #222; }
+  .modal-feed-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 14px 16px; }
+  .modal-ai-bar { background: rgba(0,0,0,0.7); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; font-size: 12px; display: flex; align-items: center; gap: 8px; }
+  .ai-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; animation: pulse 1.5s infinite; }
+  .modal-controls { background: var(--surface); padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-cam-info h3 { font-size: 15px; font-weight: 700; }
+  .modal-cam-info p { font-size: 12px; color: var(--muted); }
+  .modal-btns { display: flex; gap: 10px; }
+  .modal-close { position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+  .motion-box2 { position: absolute; border: 2px solid var(--red); border-radius: 4px; width: 80px; height: 100px; top: 100px; left: 200px; animation: moveBox2 5s infinite ease-in-out; }
+  @keyframes moveBox2 { 0%{transform:translate(0,0)} 30%{transform:translate(30px,-20px)} 60%{transform:translate(-20px,25px)} 100%{transform:translate(0,0)} }
+  .motion-box2-label { position: absolute; top: -20px; left: 0; background: var(--red); color: white; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; }
+
+  /* SCAN LINE EFFECT */
+  .scanline { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px); pointer-events: none; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+  /* SELECT */
+  select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; }
+
+  /* APP WRAPPER */
+  .app-wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+  .app-wrapper.hidden { display: none; }
+
+  /* LOGIN PAGE */
+  .login-page {
+    position: fixed; inset: 0; background: var(--bg); z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .login-page.hidden { display: none; }
+  .login-bg {
+    position: absolute; inset: 0; overflow: hidden;
+    background: radial-gradient(ellipse at 20% 50%, rgba(204,18,48,0.07) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(204,18,48,0.05) 0%, transparent 50%);
+  }
+  .login-grid {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+    background-size: 60px 60px; opacity: 0.3;
+  }
+  .login-card {
+    position: relative; width: 420px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 16px; padding: 40px;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .login-logo { font-size: 24px; font-weight: 800; color: var(--red); margin-bottom: 4px; }
+  .login-logo span { color: var(--text); }
+  .login-tagline { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+  .login-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+  .login-error { background: rgba(204,18,48,0.1); border: 1px solid rgba(204,18,48,0.3); color: #ff6b6b; font-size: 12px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
+  .login-error.show { display: block; }
+  .login-btn { width: 100%; padding: 12px; background: var(--red); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 4px; }
+  .login-btn:hover { background: var(--red-dark); }
+  .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+  .login-divider { text-align: center; font-size: 12px; color: #444; margin: 20px 0; position: relative; }
+  .login-divider::before, .login-divider::after { content: ''; position: absolute; top: 50%; width: 44%; height: 1px; background: var(--border); }
+  .login-divider::before { left: 0; } .login-divider::after { right: 0; }
+  .demo-accounts { display: flex; flex-direction: column; gap: 8px; }
+  .demo-account {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px;
+  }
+  .demo-account:hover { border-color: var(--red); background: rgba(204,18,48,0.05); }
+  .demo-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+  .demo-info { flex: 1; }
+  .demo-name { font-size: 13px; font-weight: 600; }
+  .demo-email { font-size: 11px; color: var(--muted); }
+  .demo-plan { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap; }
+  .plan-free { background: rgba(136,136,136,0.15); color: var(--muted); }
+  .plan-standard { background: rgba(99,102,241,0.15); color: #818cf8; }
+  .plan-premium { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .login-footer { text-align: center; font-size: 11px; color: #444; margin-top: 24px; }
+  .forgot-link { color: var(--red); cursor: pointer; font-size: 12px; text-align: right; display: block; margin-top: -10px; margin-bottom: 18px; }
+  .forgot-link:hover { text-decoration: underline; }
+
+  /* PROFILE DROPDOWN */
+  .profile-wrap { position: relative; }
+  .profile-dropdown {
+    position: absolute; top: 44px; right: 0; width: 220px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5); z-index: 50; display: none; overflow: hidden;
+  }
+  .profile-dropdown.open { display: block; }
+  .profile-header { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .profile-name { font-size: 14px; font-weight: 700; }
+  .profile-email { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .profile-plan-badge { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+  .dropdown-item { padding: 10px 16px; font-size: 13px; cursor: pointer; color: var(--muted); display: flex; align-items: center; gap: 10px; transition: all 0.1s; }
+  .dropdown-item:hover { background: var(--surface2); color: var(--text); }
+  .dropdown-item svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .dropdown-item.danger { color: var(--red); }
+  .dropdown-item.danger:hover { background: rgba(204,18,48,0.08); }
+  .dropdown-divider { height: 1px; background: var(--border); }
+
+  /* LOADING SPINNER */
+  .login-spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="login-page">
+  <div class="login-bg"><div class="login-grid"></div></div>
+  <div class="login-card">
+    <div class="login-logo">Bright<span>Lock</span></div>
+    <div class="login-tagline">Smart Home Security Platform</div>
+    <div class="login-title">Welcome back</div>
+    <div class="login-sub">Sign in to your account</div>
+
+    <div class="login-error" id="login-error">Incorrect email or password. Try a demo account below.</div>
+
+    <label class="form-label">Email</label>
+    <input class="form-input" type="email" id="login-email" placeholder="you@example.com" onkeydown="if(event.key==='Enter')doLogin()">
+    <label class="form-label">Password</label>
+    <input class="form-input" type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <span class="forgot-link">Forgot password?</span>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Sign In</button>
+
+    <div class="login-divider">or sign in as a demo user</div>
+
+    <div class="demo-accounts">
+      <div class="demo-account" onclick="quickLogin('happy.herman@tcu.edu','demo123')">
+        <div class="demo-avatar" style="background:#CC1230">HH</div>
+        <div class="demo-info">
+          <div class="demo-name">Happy Herman</div>
+          <div class="demo-email">happy.herman@tcu.edu</div>
+        </div>
+        <span class="demo-plan plan-standard">Standard</span>
+      </div>
+      <div class="demo-account" onclick="quickLogin('sarah.johnson@email.com','demo123')">
+        <div class="demo-avatar" style="background:#6366f1">SJ</div>
+        <div class="demo-info">
+          <div class="demo-name">Sarah Johnson</div>
+          <div class="demo-email">sarah.johnson@email.com</div>
+        </div>
+        <span class="demo-plan plan-premium">Premium</span>
+      </div>
+      <div class="demo-account" onclick="quickLogin('marcus.t@gmail.com','demo123')">
+        <div class="demo-avatar" style="background:#0ea5e9">MT</div>
+        <div class="demo-info">
+          <div class="demo-name">Marcus Thompson</div>
+          <div class="demo-email">marcus.t@gmail.com</div>
+        </div>
+        <span class="demo-plan plan-free">Free</span>
+      </div>
+    </div>
+    <div class="login-footer">BrightLock Security © 2026 · Demo Mode</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app-wrapper hidden" id="app-wrapper">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+<div class="sidebar">
+  <div class="logo">Bright<span>Lock</span></div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="showPage('events', this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15 17H20L18.6 15.6A1 1 0 0118 14.8V11A6 6 0 006 11v3.8a1 1 0 01-.6.8L4 17H9M15 17v1a3 3 0 01-6 0V17M15 17H9"/></svg>
+      Events
+    </div>
+    <div class="nav-item" onclick="showPage('settings', this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path stroke-width="2" stroke-linecap="round" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+    <div class="nav-item" onclick="showPage('subscription', this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+      Subscription
+    </div>
+    <div class="nav-item" onclick="showPage('recovery', this)">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      Recovery
+    </div>
+  </nav>
+  <div class="sidebar-footer">BrightLock Security v2.1.0</div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <span class="topbar-title" id="page-title">Dashboard</span>
+    <div class="topbar-right">
+      <button class="notif-btn" onclick="showPage('events', document.querySelector('[onclick*=events]'))">
+        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 17H20L18.6 15.6A1 1 0 0118 14.8V11A6 6 0 006 11v3.8a1 1 0 01-.6.8L4 17H9M15 17v1a3 3 0 01-6 0V17M15 17H9"/></svg>
+        <span class="notif-dot"></span>
+      </button>
+      <div class="profile-wrap">
+        <div class="avatar" id="user-avatar" onclick="toggleProfile()">HH</div>
+        <div class="profile-dropdown" id="profile-dropdown">
+          <div class="profile-header">
+            <div class="profile-name" id="profile-name">Happy Herman</div>
+            <div class="profile-email" id="profile-email">happy.herman@tcu.edu</div>
+            <span class="profile-plan-badge plan-standard" id="profile-plan-badge">Standard Plan</span>
+          </div>
+          <div class="dropdown-item" onclick="showPage('subscription', document.querySelector(\'[onclick*=subscription]\'));toggleProfile()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            Manage Subscription
+          </div>
+          <div class="dropdown-item" onclick="showPage('settings', document.querySelector(\'[onclick*=settings]\'));toggleProfile()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            Account Settings
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item danger" onclick="doLogout()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Sign Out
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- DASHBOARD PAGE -->
+    <div class="page active" id="page-dashboard">
+      <div class="recovery-banner" id="recovery-banner">
+        <div class="recovery-banner-left">
+          <div class="recovery-icon">
+            <svg width="18" height="18" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+          </div>
+          <div class="recovery-text">
+            <strong>Action required:</strong> Your BrightLock Pro 2 (BLP2-08821) may be affected by firmware v4.2.1
+            <p>You qualify for a free priority replacement + 3 months Premium + 2-year warranty</p>
+          </div>
+        </div>
+        <div class="recovery-actions">
+          <button class="btn-red" onclick="showPage('recovery', document.querySelector('[onclick*=recovery]'))">Get Replacement</button>
+          <button class="btn-ghost" onclick="document.getElementById('recovery-banner').style.display='none'">Dismiss</button>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Cameras Online</div>
+          <div class="stat-value stat-green">4/4</div>
+          <div class="stat-sub">All systems active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Events Today</div>
+          <div class="stat-value">23</div>
+          <div class="stat-sub">6 require review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">False Alarms</div>
+          <div class="stat-value stat-red">8</div>
+          <div class="stat-sub">↑ vs last week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Subscription</div>
+          <div class="stat-value" style="font-size:16px;padding-top:4px">Standard</div>
+          <div class="stat-sub" style="color:var(--red);cursor:pointer" onclick="showPage('subscription', document.querySelector('[onclick*=subscription]'))">Upgrade to Premium →</div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <span class="section-title">Live Cameras</span>
+        <span class="section-meta">4 devices • all online</span>
+      </div>
+      <div class="camera-grid">
+        <!-- Camera 1 -->
+        <div class="camera-tile" onclick="openModal('Front Door', 'Active — Person detected 2 min ago')">
+          <div class="camera-feed">
+            <div class="feed-placeholder"></div>
+            <div class="scanline"></div>
+            <div class="motion-box"><span class="motion-box-label">Person 94%</span></div>
+            <div class="feed-overlay">
+              <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+              <div style="font-size:10px;color:#666;align-self:flex-end">CAM 01 · 4K</div>
+            </div>
+          </div>
+          <div class="camera-info">
+            <div>
+              <div class="camera-name">Front Door</div>
+              <div class="camera-sub">Person detected · 2 min ago</div>
+            </div>
+            <div class="camera-actions">
+              <div class="icon-btn" title="Fullscreen">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+              </div>
+              <div class="icon-btn" title="Siren">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072M12 10v4m-3.536-5.536a5 5 0 000 7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Camera 2 -->
+        <div class="camera-tile" onclick="openModal('Backyard', 'Active — Motion detected 12 min ago')">
+          <div class="camera-feed">
+            <div class="feed-placeholder" style="background:linear-gradient(135deg,#0d1a0d,#111,#0a0a0a)"></div>
+            <div class="scanline"></div>
+            <div class="feed-overlay">
+              <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+              <div style="font-size:10px;color:#666;align-self:flex-end">CAM 02 · 2K</div>
+            </div>
+          </div>
+          <div class="camera-info">
+            <div>
+              <div class="camera-name">Backyard</div>
+              <div class="camera-sub">Motion · 12 min ago</div>
+            </div>
+            <div class="camera-actions">
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg></div>
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072M12 10v4m-3.536-5.536a5 5 0 000 7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <!-- Camera 3 -->
+        <div class="camera-tile" onclick="openModal('Garage', 'Active — Vehicle detected 1 hr ago')">
+          <div class="camera-feed">
+            <div class="feed-placeholder" style="background:linear-gradient(135deg,#0d0d1a,#111,#0a0a0d)"></div>
+            <div class="scanline"></div>
+            <div class="feed-overlay">
+              <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+              <div style="font-size:10px;color:#666;align-self:flex-end">CAM 03 · 1080p</div>
+            </div>
+          </div>
+          <div class="camera-info">
+            <div>
+              <div class="camera-name">Garage</div>
+              <div class="camera-sub">Vehicle · 1 hr ago</div>
+            </div>
+            <div class="camera-actions">
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg></div>
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072M12 10v4m-3.536-5.536a5 5 0 000 7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            </div>
+          </div>
+        </div>
+        <!-- Camera 4 -->
+        <div class="camera-tile" onclick="openModal('Driveway', 'Active — No recent events')">
+          <div class="camera-feed">
+            <div class="feed-placeholder" style="background:linear-gradient(135deg,#0f0f0f,#181818,#0a0a0a)"></div>
+            <div class="scanline"></div>
+            <div class="feed-overlay">
+              <div class="live-badge"><span class="live-dot"></span> LIVE</div>
+              <div style="font-size:10px;color:#666;align-self:flex-end">CAM 04 · 4K</div>
+            </div>
+          </div>
+          <div class="camera-info">
+            <div>
+              <div class="camera-name">Driveway</div>
+              <div class="camera-sub">No recent events</div>
+            </div>
+            <div class="camera-actions">
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg></div>
+              <div class="icon-btn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072M12 10v4m-3.536-5.536a5 5 0 000 7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EVENTS PAGE -->
+    <div class="page" id="page-events">
+      <div class="section-header" style="margin-bottom:20px">
+        <span class="section-title">Event History</span>
+        <div style="display:flex;gap:8px">
+          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">All</button>
+          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Person</button>
+          <button class="btn-ghost" style="font-size:12px;padding:6px 12px">Vehicle</button>
+          <button class="btn-ghost" style="font-size:12px;padding:6px 12px;color:var(--red);border-color:var(--red)">False Alarm</button>
+        </div>
+      </div>
+      <div class="events-list">
+        <div class="event-item">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 8a9 9 0 11-18 0"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-person">Person</span> Unknown individual detected</div>
+            <div class="event-meta">Front Door · 2 min ago · 94% confidence</div>
+          </div>
+          <span class="confidence">94%</span>
+        </div>
+        <div class="event-item" style="border-color:rgba(204,18,48,0.3)">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-false">False Alarm</span> Triggered at 3:14 AM</div>
+            <div class="event-meta">Backyard · 4 hrs ago · v4.2.1 firmware issue</div>
+          </div>
+          <button class="btn-ghost" style="font-size:11px;padding:5px 10px;white-space:nowrap">Mark Reviewed</button>
+        </div>
+        <div class="event-item">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m-4 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-vehicle">Vehicle</span> Vehicle parked in driveway</div>
+            <div class="event-meta">Garage · 1 hr ago · 88% confidence</div>
+          </div>
+          <span class="confidence">88%</span>
+        </div>
+        <div class="event-item">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2zM12 7V4m0 16v-3"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-package">Package</span> Package delivered</div>
+            <div class="event-meta">Front Door · 2 hrs ago · 99% confidence</div>
+          </div>
+          <span class="confidence">99%</span>
+        </div>
+        <div class="event-item" style="border-color:rgba(204,18,48,0.3)">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-false">False Alarm</span> Triggered at 2:47 AM</div>
+            <div class="event-meta">Front Door · 6 hrs ago · v4.2.1 firmware issue</div>
+          </div>
+          <button class="btn-ghost" style="font-size:11px;padding:5px 10px;white-space:nowrap">Mark Reviewed</button>
+        </div>
+        <div class="event-item">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 8a9 9 0 11-18 0"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-person">Person</span> Known face — Sarah</div>
+            <div class="event-meta">Front Door · 8 hrs ago · 97% confidence</div>
+          </div>
+          <span class="confidence">97%</span>
+        </div>
+        <div class="event-item">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-animal">Animal</span> Animal in backyard</div>
+            <div class="event-meta">Backyard · Yesterday, 11:22 PM · 76% confidence</div>
+          </div>
+          <span class="confidence">76%</span>
+        </div>
+        <div class="event-item" style="border-color:rgba(204,18,48,0.3)">
+          <div class="event-thumb"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="22" height="22"><path stroke-width="1.5" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+          <div class="event-body">
+            <div class="event-title"><span class="badge badge-false">False Alarm</span> Triggered at 3:02 AM</div>
+            <div class="event-meta">Driveway · Yesterday · v4.2.1 firmware issue</div>
+          </div>
+          <button class="btn-ghost" style="font-size:11px;padding:5px 10px;white-space:nowrap">Mark Reviewed</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS PAGE -->
+    <div class="page" id="page-settings">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <span class="section-title">Device Settings</span>
+        <select>
+          <option>Front Door — BLP2-08821</option>
+          <option>Backyard — BLP-04422</option>
+          <option>Garage — BLC-01193</option>
+          <option>Driveway — BLP2-08844</option>
+        </select>
+      </div>
+
+      <div class="settings-card">
+        <h3>Firmware</h3>
+        <div class="firmware-row">
+          <div>
+            <div style="font-size:13px;font-weight:600">Current Version: v4.2.1</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">Released January 8, 2026 — Known false alarm issue</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <span class="firmware-badge">Update Available: v4.3.2</span>
+            <button class="btn-red" style="padding:7px 14px;font-size:12px">Update Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Motion Detection</h3>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Detection Sensitivity</div>
+            <div class="setting-desc">Higher sensitivity may cause false alarms</div>
+          </div>
+          <div class="slider-wrap">
+            <input type="range" class="slider" min="1" max="4" value="3" oninput="updateSlider(this)">
+            <span class="slider-val" id="slider-label">High</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Person Detection</div>
+            <div class="setting-desc">AI-powered human detection</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Vehicle Detection</div>
+            <div class="setting-desc">Detects cars, trucks, motorcycles</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Package Detection</div>
+            <div class="setting-desc">Alerts when packages are delivered or removed</div>
+          </div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Animal Detection</div>
+          </div>
+          <div class="toggle" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Motion Zones</h3>
+        <div style="display:flex;gap:24px;align-items:flex-start">
+          <div class="zone-grid">
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+            <div class="zone active" onclick="this.classList.toggle('active')"></div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);padding-top:4px;line-height:1.7">
+            Click zones to toggle active areas.<br>
+            <span style="color:var(--red)">Red = monitored.</span><br>
+            Deactivate zones covering<br>street or trees to reduce<br>false alarms.
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h3>Camera</h3>
+        <div class="setting-row">
+          <div><div class="setting-label">Night Vision</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">HDR Mode</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+        <div class="setting-row">
+          <div><div class="setting-label">Status Light</div></div>
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBSCRIPTION PAGE -->
+    <div class="page" id="page-subscription">
+      <div class="section-header" style="margin-bottom:24px">
+        <span class="section-title">Subscription Plans</span>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)">
+          Monthly
+          <div class="toggle on" onclick="this.classList.toggle('on');toggleBilling()" style="cursor:pointer"></div>
+          Annual <span style="color:var(--green);font-size:11px;font-weight:600;background:rgba(34,197,94,0.1);padding:2px 8px;border-radius:4px">Save up to $40</span>
+        </div>
+      </div>
+      <div class="plan-grid">
+        <div class="plan-card">
+          <div class="plan-name">Free</div>
+          <div class="plan-price">$0<span>/mo</span></div>
+          <div class="plan-period">Always free</div>
+          <ul class="plan-features">
+            <li class="yes">Live view (1 camera)</li>
+            <li class="yes">24-hr event history</li>
+            <li class="yes">Basic motion alerts</li>
+            <li class="no">Cloud storage</li>
+            <li class="no">AI smart detection</li>
+            <li class="no">Personalized AI</li>
+            <li class="no">Priority support</li>
+          </ul>
+          <button class="plan-btn plan-btn-outline">Current Free</button>
+        </div>
+        <div class="plan-card current">
+          <div class="plan-name">Standard</div>
+          <div class="plan-price" id="standard-price">$9.99<span>/mo</span></div>
+          <div class="plan-period" id="standard-period">or $99/year — save $20</div>
+          <ul class="plan-features">
+            <li class="yes">Everything in Free</li>
+            <li class="yes">30-day cloud storage</li>
+            <li class="yes">AI smart detection</li>
+            <li class="yes">Up to 5 cameras</li>
+            <li class="yes">E911 integration</li>
+            <li class="no">Personalized AI</li>
+            <li class="no">Priority support</li>
+          </ul>
+          <button class="plan-btn plan-btn-outline">Current Plan</button>
+        </div>
+        <div class="plan-card">
+          <div class="plan-name">Premium</div>
+          <div class="plan-price" id="premium-price">$19.99<span>/mo</span></div>
+          <div class="plan-period" id="premium-period">or $199/year — save $40</div>
+          <ul class="plan-features">
+            <li class="yes">Everything in Standard</li>
+            <li class="yes">60-day cloud storage</li>
+            <li class="yes">Personalized AI</li>
+            <li class="yes">Unlimited cameras</li>
+            <li class="yes">Priority support</li>
+            <li class="yes">Extended warranty</li>
+            <li class="yes">Theft replacement</li>
+          </ul>
+          <button class="plan-btn plan-btn-red">Upgrade to Premium</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECOVERY PAGE -->
+    <div class="page" id="page-recovery">
+      <div class="recovery-page">
+        <div style="width:56px;height:56px;background:rgba(204,18,48,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 20px">
+          <svg width="28" height="28" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        </div>
+        <h2>We're making it right.</h2>
+        <p>A flawed firmware update (v4.2.1) affected approximately 32,000 BrightLock Pro 2 units, causing false alarm triggers — especially overnight. We take full responsibility and are committed to making every affected customer whole.</p>
+
+        <div class="progress-steps">
+          <div class="step active"><div class="step-dot">1</div><span style="margin-left:6px">Submit</span></div>
+          <div class="step-line"></div>
+          <div class="step"><div class="step-dot">2</div><span style="margin-left:6px">Processing</span></div>
+          <div class="step-line"></div>
+          <div class="step"><div class="step-dot">3</div><span style="margin-left:6px">Shipped</span></div>
+          <div class="step-line"></div>
+          <div class="step"><div class="step-dot">4</div><span style="margin-left:6px">Delivered</span></div>
+        </div>
+
+        <div class="recovery-benefits">
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <svg width="20" height="20" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            </div>
+            <div class="benefit-title">Priority Replacement</div>
+            <div class="benefit-desc">New unit ships within 5 business days</div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <svg width="20" height="20" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+            </div>
+            <div class="benefit-title">2-Year Warranty</div>
+            <div class="benefit-desc">Extended warranty on replacement unit</div>
+          </div>
+          <div class="benefit-card">
+            <div class="benefit-icon">
+              <svg width="20" height="20" fill="none" stroke="var(--red)" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            </div>
+            <div class="benefit-title">3 Months Free Premium</div>
+            <div class="benefit-desc">$59.97 value — no credit card required</div>
+          </div>
+        </div>
+
+        <div class="recovery-form">
+          <label class="form-label">Serial Number</label>
+          <input class="form-input" type="text" placeholder="e.g. BLP2-08821" value="BLP2-08821">
+          <label class="form-label">Shipping Address</label>
+          <input class="form-input" type="text" placeholder="Street address" value="123 Elmwood Drive">
+          <input class="form-input" type="text" placeholder="City, State, ZIP" value="Austin, TX 78701">
+          <label class="form-label">Email for Confirmation</label>
+          <input class="form-input" type="email" placeholder="your@email.com" value="happy.herman@tcu.edu">
+          <button class="btn-red" style="width:100%;padding:12px;font-size:14px;border-radius:8px" onclick="submitRecovery()">Submit Recovery Request</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- end app-wrapper -->
+
+<!-- LIVE VIEW MODAL -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-feed">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0a,#111,#0d0d0d)"></div>
+      <div class="scanline"></div>
+      <div class="motion-box2"><span class="motion-box2-label">Person 91%</span></div>
+      <div class="modal-feed-overlay">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="live-badge"><span class="live-dot"></span> LIVE · 4K</div>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-ai-bar">
+          <span class="ai-dot"></span>
+          <span id="modal-ai-text">AI monitoring active — Person detected near entrance</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-controls">
+      <div class="modal-cam-info">
+        <h3 id="modal-title">Front Door</h3>
+        <p id="modal-sub">Active — Person detected 2 min ago</p>
+      </div>
+      <div class="modal-btns">
+        <button class="icon-btn" title="Screenshot" style="width:36px;height:36px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><rect x="3" y="3" width="18" height="18" rx="2" stroke-width="2"/><circle cx="12" cy="12" r="3" stroke-width="2"/></svg>
+        </button>
+        <button class="icon-btn" title="Record" style="width:36px;height:36px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="8" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="var(--red)" stroke="none"/></svg>
+        </button>
+        <button class="icon-btn" title="Two-Way Audio" style="width:36px;height:36px">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-width="2" stroke-linecap="round" d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path stroke-width="2" stroke-linecap="round" d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg>
+        </button>
+        <button class="btn-red" style="padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:6px">
+          <svg width="14" height="14" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M15.536 8.464a5 5 0 010 7.072M12 10v4m-3.536-5.536a5 5 0 000 7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Siren
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── DUMMY USERS ──────────────────────────────────────────────────────────
+  const USERS = {
+    'happy.herman@tcu.edu': {
+      password: 'demo123', name: 'Happy Herman', initials: 'HH',
+      plan: 'Standard', planClass: 'plan-standard', avatarColor: '#CC1230',
+      address: '3201 Bellaire Drive, Fort Worth, TX 76109',
+      serial: 'BLP2-08821', affected: true,
+      cameras: ['Front Door','Backyard','Garage','Driveway'],
+    },
+    'sarah.johnson@email.com': {
+      password: 'demo123', name: 'Sarah Johnson', initials: 'SJ',
+      plan: 'Premium', planClass: 'plan-premium', avatarColor: '#6366f1',
+      address: '842 Oak Creek Lane, Austin, TX 78745',
+      serial: 'BLP2-04477', affected: false,
+      cameras: ['Front Door','Side Gate','Backyard','Garage'],
+    },
+    'marcus.t@gmail.com': {
+      password: 'demo123', name: 'Marcus Thompson', initials: 'MT',
+      plan: 'Free', planClass: 'plan-free', avatarColor: '#0ea5e9',
+      address: '123 Elmwood Drive, Dallas, TX 75201',
+      serial: 'BLC-01193', affected: false,
+      cameras: ['Front Door'],
+    },
+  };
+
+  let currentUser = null;
+
+  // ── LOGIN ─────────────────────────────────────────────────────────────────
+  function doLogin() {
+    const email = document.getElementById('login-email').value.trim().toLowerCase();
+    const pass  = document.getElementById('login-password').value;
+    const user  = USERS[email];
+    const btn   = document.getElementById('login-btn');
+    const err   = document.getElementById('login-error');
+
+    if (!user || user.password !== pass) {
+      err.classList.add('show');
+      document.getElementById('login-password').value = '';
+      return;
+    }
+    err.classList.remove('show');
+    btn.innerHTML = '<span class="login-spinner"></span>Signing in…';
+    btn.disabled = true;
+    setTimeout(() => launchApp(user), 1000);
+  }
+
+  function quickLogin(email, pass) {
+    document.getElementById('login-email').value = email;
+    document.getElementById('login-password').value = pass;
+    doLogin();
+  }
+
+  function launchApp(user) {
+    currentUser = user;
+
+    // Update avatar & profile dropdown
+    const av = document.getElementById('user-avatar');
+    av.textContent  = user.initials;
+    av.style.background = user.avatarColor;
+
+    document.getElementById('profile-name').textContent  = user.name;
+    document.getElementById('profile-email').textContent = user.initials === 'HH'
+      ? 'happy.herman@tcu.edu' : currentUser === USERS['sarah.johnson@email.com']
+      ? 'sarah.johnson@email.com' : 'marcus.t@gmail.com';
+
+    // find email key
+    const emailKey = Object.keys(USERS).find(k => USERS[k] === user);
+    document.getElementById('profile-email').textContent = emailKey;
+
+    const badge = document.getElementById('profile-plan-badge');
+    badge.textContent = user.plan + ' Plan';
+    badge.className   = 'profile-plan-badge ' + user.planClass;
+
+    // Recovery banner
+    document.getElementById('recovery-banner').style.display = user.affected ? 'flex' : 'none';
+
+    // Pre-fill recovery form
+    document.querySelector('.recovery-form input[placeholder="e.g. BLP2-08821"]').value = user.serial;
+    document.querySelector('.recovery-form input[placeholder="Street address"]').value   = user.address.split(',')[0];
+    document.querySelector('.recovery-form input[placeholder="City, State, ZIP"]').value = user.address.split(',').slice(1).join(',').trim();
+    document.querySelector('.recovery-form input[type="email"]').value = emailKey;
+
+    // Free plan: lock to 1 camera
+    if (user.plan === 'Free') {
+      const tiles = document.querySelectorAll('.camera-tile');
+      tiles.forEach((t, i) => { t.style.display = i === 0 ? '' : 'none'; });
+      document.querySelector('.camera-grid').style.gridTemplateColumns = '1fr';
+    } else {
+      document.querySelectorAll('.camera-tile').forEach(t => t.style.display = '');
+      document.querySelector('.camera-grid').style.gridTemplateColumns = 'repeat(2,1fr)';
+    }
+
+    // Swap pages
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('app-wrapper').classList.remove('hidden');
+
+    // Reset login button
+    const btn = document.getElementById('login-btn');
+    btn.innerHTML = 'Sign In';
+    btn.disabled = false;
+  }
+
+  function doLogout() {
+    currentUser = null;
+    toggleProfile();
+    document.getElementById('app-wrapper').classList.add('hidden');
+    document.getElementById('login-page').classList.remove('hidden');
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+    document.getElementById('login-error').classList.remove('show');
+    // Reset recovery steps
+    document.querySelectorAll('.step').forEach((s,i) => {
+      s.classList.remove('done','active');
+      s.querySelector('.step-dot').textContent = i+1;
+      if (i===0) s.classList.add('active');
+    });
+    document.querySelectorAll('.step-line').forEach(l => l.classList.remove('done'));
+    const rb = document.querySelector('.recovery-form .btn-red');
+    if (rb) rb.textContent = 'Submit Recovery Request';
+  }
+
+  // ── PROFILE DROPDOWN ──────────────────────────────────────────────────────
+  function toggleProfile() {
+    document.getElementById('profile-dropdown').classList.toggle('open');
+  }
+  document.addEventListener('click', e => {
+    const wrap = document.querySelector('.profile-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('profile-dropdown').classList.remove('open');
+    }
+  });
+
+  // ── APP NAV ───────────────────────────────────────────────────────────────
+  const sliderLabels = ['Low','Medium','High','Max'];
+  function updateSlider(el) {
+    document.getElementById('slider-label').textContent = sliderLabels[el.value - 1];
+  }
+
+  function showPage(id, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    if (el) el.classList.add('active');
+    const titles = { dashboard:'Dashboard', events:'Event History', settings:'Settings', subscription:'Subscription', recovery:'Recovery Program' };
+    document.getElementById('page-title').textContent = titles[id] || id;
+  }
+
+  function openModal(title, sub) {
+    document.getElementById('modal-title').textContent = title;
+    document.getElementById('modal-sub').textContent   = sub;
+    document.getElementById('modal').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('modal').classList.remove('open');
+  }
+
+  let annualBilling = true;
+  function toggleBilling() {
+    annualBilling = !annualBilling;
+    document.getElementById('standard-price').innerHTML = annualBilling ? '$8.25<span>/mo</span>' : '$9.99<span>/mo</span>';
+    document.getElementById('premium-price').innerHTML  = annualBilling ? '$16.58<span>/mo</span>' : '$19.99<span>/mo</span>';
+    document.getElementById('standard-period').textContent = annualBilling ? 'billed $99/year — save $20' : 'or $99/year — save $20';
+    document.getElementById('premium-period').textContent  = annualBilling ? 'billed $199/year — save $40' : 'or $199/year — save $40';
+  }
+
+  function submitRecovery() {
+    const steps = document.querySelectorAll('.step');
+    const lines = document.querySelectorAll('.step-line');
+    let current = 0;
+    steps.forEach((s,i) => { if(s.classList.contains('active')) current = i; });
+    if (current < steps.length - 1) {
+      steps[current].classList.remove('active');
+      steps[current].classList.add('done');
+      steps[current].querySelector('.step-dot').textContent = '✓';
+      if (lines[current]) lines[current].classList.add('done');
+      steps[current + 1].classList.add('active');
+      const btn = document.querySelector('.recovery-form .btn-red');
+      const labels = ['Processing...', 'Track Shipment', 'View Delivery'];
+      btn.textContent = labels[current] || 'Done';
+    }
+  }
+</script>
+</body>
+</html>

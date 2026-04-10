@@ -18,7 +18,7 @@
     --green: #22c55e;
     --yellow: #f59e0b;
   }
-  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; display: flex; height: 100vh; overflow: hidden; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; margin: 0; }
 
   /* SIDEBAR */
   .sidebar {
@@ -241,7 +241,7 @@
   select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 8px; font-size: 13px; outline: none; cursor: pointer; }
 
   /* APP WRAPPER */
-  .app-wrapper { display: flex; width: 100%; height: 100vh; overflow: hidden; }
+  .app-wrapper { position: fixed; inset: 0; display: flex; overflow: hidden; }
   .app-wrapper.hidden { display: none; }
 
   /* LOGIN PAGE */

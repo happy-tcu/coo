@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BrightLock">
+<meta name="theme-color" content="#0f0f0f">
 <title>BrightLock Security</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -259,6 +263,53 @@
   .app-wrapper { width: 100vw; height: 100vh; display: flex; overflow: hidden; }
   .app-wrapper.hidden { display: none; }
 
+  /* BOTTOM NAV (mobile) */
+  .bottom-nav { display: none; }
+
+  /* MOBILE RESPONSIVE */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .app-wrapper { flex-direction: column; }
+    .main { width: 100%; }
+    .content { padding: 16px; padding-bottom: 80px; }
+    .topbar { padding: 0 16px; }
+    .dashboard-panels { grid-template-columns: 1fr !important; }
+    .panel-right { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .camera-grid { grid-template-columns: 1fr !important; }
+    .plan-grid { grid-template-columns: 1fr; }
+    .recovery-benefits { grid-template-columns: 1fr; }
+    .recovery-page { padding: 10px 0; }
+    .modal { width: 100vw; max-width: 100vw; border-radius: 14px 14px 0 0; position: fixed; bottom: 0; }
+    .modal-feed { height: 220px; }
+    .recovery-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .recovery-actions { width: 100%; }
+    .recovery-actions .btn-red { flex: 1; text-align: center; }
+
+    /* BOTTOM NAV */
+    .bottom-nav {
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--surface); border-top: 1px solid var(--border);
+      padding: 8px 0; padding-bottom: calc(8px + env(safe-area-inset-bottom));
+      z-index: 50;
+    }
+    .bottom-nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; cursor: pointer; color: var(--muted); padding: 4px 0;
+      font-size: 10px; font-weight: 500; transition: color 0.15s;
+    }
+    .bottom-nav-item.active { color: var(--red); }
+    .bottom-nav-item svg { width: 22px; height: 22px; }
+
+    /* Login mobile */
+    .login-card { width: 92vw; padding: 28px 20px; }
+    .demo-accounts { gap: 6px; }
+
+    /* Topbar mobile */
+    .topbar-title { font-size: 15px; }
+  }
+
+
   /* LOGIN PAGE */
   .login-page {
     position: fixed; inset: 0; background: var(--bg); z-index: 200;
@@ -455,7 +506,7 @@
   </div>
 
   <!-- CONTENT -->
-  <div class="content">
+  <div class="content" id="page-content">
 
     <!-- DASHBOARD PAGE -->
     <div class="page active" id="page-dashboard">
@@ -1117,6 +1168,30 @@
   </div>
 </div>
 
+    <!-- BOTTOM NAV (mobile only) -->
+    <div class="bottom-nav">
+      <div class="bottom-nav-item active" onclick="showPage('dashboard',this);syncBottomNav(this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="1" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="1" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="1" stroke-width="2"/></svg>
+        Home
+      </div>
+      <div class="bottom-nav-item" onclick="showPage('events',this);syncBottomNav(this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 17H20L18.6 15.6A1 1 0 0118 14.8V11A6 6 0 006 11v3.8a1 1 0 01-.6.8L4 17H9M15 17v1a3 3 0 01-6 0V17M15 17H9"/></svg>
+        Events
+      </div>
+      <div class="bottom-nav-item" onclick="showPage('settings',this);syncBottomNav(this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path stroke-width="2" d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06-.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Settings
+      </div>
+      <div class="bottom-nav-item" onclick="showPage('subscription',this);syncBottomNav(this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+        Plan
+      </div>
+      <div class="bottom-nav-item" onclick="showPage('recovery',this);syncBottomNav(this)">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Recovery
+      </div>
+    </div>
+
 </div><!-- end app-wrapper -->
 
 <!-- LIVE VIEW MODAL -->
@@ -1304,9 +1379,15 @@
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
-    if (el) el.classList.add('active');
+    if (el && el.classList.contains('nav-item')) el.classList.add('active');
     const titles = { dashboard:'Dashboard', events:'Event History', settings:'Settings', subscription:'Subscription', recovery:'Recovery Program' };
     document.getElementById('page-title').textContent = titles[id] || id;
+    document.getElementById('page-content').scrollTop = 0;
+  }
+
+  function syncBottomNav(el) {
+    document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
   }
 
   function openModal(title, sub) {
